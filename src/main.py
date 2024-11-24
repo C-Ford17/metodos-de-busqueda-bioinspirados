@@ -6,6 +6,7 @@ from docx import Document
 from docx.shared import Inches
 import matplotlib.pyplot as plt
 from io import BytesIO
+from numpy import arange
 
 from met_simulated_annealing import plot_learning
 from parallel_simulated_annealing import parallel_sa
@@ -20,6 +21,11 @@ cached = []
 
 def fill_document(template_path, output_path, data: list[dict]):
     doc = Document(template_path)
+
+    results = {
+        'sa': [],
+        'aco': []
+    }
     
     for i, params in enumerate(data):
         if i in cached:
@@ -38,9 +44,13 @@ def fill_document(template_path, output_path, data: list[dict]):
             params['[sa_avg_time]'],
             params['[sa_avg_iter]'],
             min_path,
-            sa_fitness_list
+            sa_fitness_list,
+            distances,
+            durations
         ) = parallel_sa(coords, params, EXECUTIONS, THREADS)
-        
+
+        results['sa'].append((distances, durations))
+
         (
             params['[aco_min_dist]'],
             params['[aco_max_dist]'],
@@ -49,8 +59,12 @@ def fill_document(template_path, output_path, data: list[dict]):
             params['[aco_avg_time]'],
             params['[aco_avg_iter]'],
             min_path,
-            aco_fitness_list
+            aco_fitness_list,
+            distances,
+            durations
         ) = parallel_aco(coords, params, EXECUTIONS, THREADS)
+
+        results['aco'].append((distances, durations))
 
         for paragraph in doc.paragraphs:
             for key, value in params.items():
@@ -97,7 +111,52 @@ def fill_document(template_path, output_path, data: list[dict]):
                         plot_learning(aco_fitness_list, 'Aprendizaje', buf)
                         buf.seek(0)
                         run.add_picture(buf, width=Inches(3.0))
-    
+
+    labels = ['SA', 'ACO']
+    distances = [results['sa'][0][0], results['aco'][0][0]]
+    durations = [results['sa'][0][1], results['aco'][0][1]]
+    colors = ['peachpuff', 'orange']
+
+    for paragraph in doc.paragraphs:
+        for run in paragraph.runs:
+            if "[grafico_cajas]" in run.text:
+                run.text = run.text.replace("[grafico_cajas]\n", '')
+                plt.clf()
+                fig, ax = plt.subplots()
+                ax.set_ylabel('distancia total')
+                bplot = ax.boxplot(distances, patch_artist=True, tick_labels=labels)
+                for patch, color in zip(bplot['boxes'], colors):
+                    patch.set_facecolor(color)
+                buf = BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
+                run.add_picture(buf, width=Inches(4))
+            if "[grafico_lineas]" in run.text:
+                run.text = run.text.replace('[grafico_lineas]\n', '')
+                plt.clf()
+                plt.ylabel('distacia total')
+                [a, b] = plt.plot(range(0, 30), distances[0], 'r', distances[1], 'b',)
+                plt.legend([a, b], ['SA', 'ACO'])
+                buf = BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
+                run.add_picture(buf, width=Inches(8))
+            if "[grafico_tiempos]" in run.text:
+                run.text = run.text.replace('[grafico_tiempos]\n', '')
+                plt.clf()
+                X_axis = arange(1, 31)
+                plt.bar(X_axis + 0.2, durations[0], 0.4, label=labels[0])
+                plt.bar(X_axis - 0.2, durations[1], 0.4, label=labels[1])
+                plt.xticks(arange(1, 31, 2), [str(x) for x in range(1, 31, 2)])
+                plt.xlabel('ejecución')
+                plt.ylabel('tiempo')
+                plt.title('Duraciones')
+                buf = BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
+                run.add_picture(buf, width=Inches(8))
+            
+
     doc.save(output_path)
 
 
@@ -186,8 +245,8 @@ if __name__ == '__main__':
     ]
 
     try:
-        fill_document('./res/template.docx', './res/output.docx', data)
+        fill_document('./res/template2.docx', './res/output.docx', data)
         print('Se guardó el resultado en "./res/output.docx"')
     except Exception:
-        fill_document('../res/template.docx', '../res/output.docx', data)
+        fill_document('../res/template2.docx', '../res/output.docx', data)
         print('Se guardó el resultado en "../res/output.docx"')
