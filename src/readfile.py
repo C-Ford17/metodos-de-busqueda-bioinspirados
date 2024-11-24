@@ -17,5 +17,10 @@ def readfile(file):
             for line in f:
                 _, x, y = line.split(' ')
                 coords.append((float(x), float(y)))
+    elif 'uscap50.txt' in file:
+        with open(file, "r") as f:
+            for line in f:
+                x, y = line.split(' ')
+                coords.append((float(x), float(y)))
     
     return coords

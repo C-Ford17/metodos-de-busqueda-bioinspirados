@@ -13,7 +13,7 @@ from parallel_ant_colony import parallel_aco
 from visualize_tsp import plot_tsp
 from readfile import readfile
 
-THREADS = 2
+THREADS = 15
 EXECUTIONS = 30
 
 cached = []
@@ -56,7 +56,11 @@ def fill_document(template_path, output_path, data: list[dict]):
             for key, value in params.items():
                 paragraph.text = paragraph.text.replace(key, str(value))
     
-        table = doc.tables[i]
+        try:
+            table = doc.tables[i]
+        except Exception:
+            doc.save(output_path)
+            return
         for row in table.rows:
             for cell in row.cells:
                 for key, value in params.items():
@@ -101,18 +105,84 @@ if __name__ == '__main__':
 
     data = [
         {
-            '[file]': 'tiny.csv',
-            '[temperatura_inicial]': 30,
-            '[temperatura_final]': 0.01,
+            '[file]': 'uscap50.txt',
+            '[temperatura_inicial]': 50**0.5,
+            '[temperatura_final]': 1e-8,
             '[tasa_enfriamiento]': 0.95,
-            '[sa_max_iter]': 200,
+            '[sa_max_iter]': 10000,
 
-            '[n_ants]': 3,
-            '[aco_max_iter]': 30,
-            '[ro]': 0.3,
+            '[n_ants]': 10,
+            '[aco_max_iter]': 20,
+            '[ro]': 0.5,
+            '[alpha]': 1,
+            '[betha]': 1,
+        },
+        {
+            '[file]': 'uscap50.txt',
+            '[temperatura_inicial]': 1,
+            '[temperatura_final]': 1e-7,
+            '[tasa_enfriamiento]': 0.998,
+            '[sa_max_iter]': 10000,
+
+            '[n_ants]': 30,
+            '[aco_max_iter]': 200,
+            '[ro]': 0.9,
+            '[alpha]': 1,
+            '[betha]': 1,
+        },
+        {
+            '[file]': 'uscap50.txt',
+            '[temperatura_inicial]': 2,
+            '[temperatura_final]': 1e-7,
+            '[tasa_enfriamiento]': 0.9998,
+            '[sa_max_iter]': 10000,
+
+            '[n_ants]': 50,
+            '[aco_max_iter]': 600,
+            '[ro]': 0.8,
             '[alpha]': 1,
             '[betha]': 2,
         },
+        {
+            '[file]': 'uscap50.txt',
+            '[temperatura_inicial]': 50**0.5,
+            '[temperatura_final]': 1e-8,
+            '[tasa_enfriamiento]': 0.99995,
+            '[sa_max_iter]': 10000,
+
+            '[n_ants]': 20,
+            '[aco_max_iter]': 100,
+            '[ro]': 0.7,
+            '[alpha]': 1,
+            '[betha]': 1,
+        },
+        {
+            '[file]': 'uscap50.txt',
+            '[temperatura_inicial]':50**0.5,
+            '[temperatura_final]': 1e-9,
+            '[tasa_enfriamiento]': 0.999995,
+            '[sa_max_iter]': 10000,
+
+            '[n_ants]': 30,
+            '[aco_max_iter]': 400,
+            '[ro]': 0.9,
+            '[alpha]': 1,
+            '[betha]': 1,
+        },
+        {
+            '[file]': 'uscap50.txt',
+            '[temperatura_inicial]':50**0.5,
+            '[temperatura_final]': 1e-9,
+            '[tasa_enfriamiento]': 0.999995,
+            '[sa_max_iter]': 30000,
+
+            '[n_ants]': 30,
+            '[aco_max_iter]': 600,
+            '[ro]': 0.9,
+            '[alpha]': 1,
+            '[betha]': 1,
+        },
+        
     ]
 
     try:
