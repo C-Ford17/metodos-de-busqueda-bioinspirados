@@ -1,0 +1,4 @@
+traveler_problem/
+*.tmp
+output.docx
+__pycache__
