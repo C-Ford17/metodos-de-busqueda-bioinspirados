@@ -43,6 +43,8 @@ def parallel_sa(coords: list, params: dict, nexe: int, nthreads: int):
         avg_time,
         avg_iter,
         min_path,
-        choice(fitness_list)
+        choice(fitness_list),
+        distances,
+        durations
     )
     
