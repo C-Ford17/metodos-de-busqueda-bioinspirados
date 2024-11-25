@@ -7,14 +7,17 @@ from docx.shared import Inches
 import matplotlib.pyplot as plt
 from io import BytesIO
 from numpy import arange
+from multiprocessing import cpu_count
 
+import time
 from met_simulated_annealing import plot_learning
+from met_christofides import tsp as christofides_tsp
 from parallel_simulated_annealing import parallel_sa
 from parallel_ant_colony import parallel_aco
 from visualize_tsp import plot_tsp
 from readfile import readfile
 
-THREADS = 15
+THREADS = cpu_count()
 EXECUTIONS = 30
 
 cached = []
@@ -43,7 +46,7 @@ def fill_document(template_path, output_path, data: list[dict]):
             params['[sa_var_dist]'],
             params['[sa_avg_time]'],
             params['[sa_avg_iter]'],
-            min_path,
+            sa_min_path,
             sa_fitness_list,
             distances,
             durations
@@ -58,7 +61,7 @@ def fill_document(template_path, output_path, data: list[dict]):
             params['[aco_var_dist]'],
             params['[aco_avg_time]'],
             params['[aco_avg_iter]'],
-            min_path,
+            aco_min_path,
             aco_fitness_list,
             distances,
             durations
@@ -86,7 +89,7 @@ def fill_document(template_path, output_path, data: list[dict]):
                         run = p.add_run()
 
                         buf = BytesIO()
-                        plot_tsp([min_path], 'Ruta minima encontrada', coords, file=buf)
+                        plot_tsp([sa_min_path], 'Ruta minima encontrada', coords, file=buf)
                         buf.seek(0)
                         
                         run.add_picture(buf, width=Inches(3.0))
@@ -101,7 +104,7 @@ def fill_document(template_path, output_path, data: list[dict]):
                         run = p.add_run()
 
                         buf = BytesIO()
-                        plot_tsp([min_path], 'Ruta minima encontrada', coords, file=buf)
+                        plot_tsp([aco_min_path], 'Ruta minima encontrada', coords, file=buf)
                         buf.seek(0)
                         
                         run.add_picture(buf, width=Inches(3.0))
@@ -159,6 +162,10 @@ def fill_document(template_path, output_path, data: list[dict]):
 
     doc.save(output_path)
 
+    inicio = time.time()
+    christofides_tsp(coords)
+    fin = time.time()
+    print(f"Tiempo de ejecución christofides: {fin - inicio} segundos")
 
 if __name__ == '__main__':
 
@@ -245,8 +252,10 @@ if __name__ == '__main__':
     ]
 
     try:
-        fill_document('./res/template2.docx', './res/output.docx', data)
+        fill_document('./res/template.docx', './res/output.docx', data)
         print('Se guardó el resultado en "./res/output.docx"')
     except Exception:
-        fill_document('../res/template2.docx', '../res/output.docx', data)
+        fill_document('../res/template.docx', '../res/output.docx', data)
         print('Se guardó el resultado en "../res/output.docx"')
+
+        
